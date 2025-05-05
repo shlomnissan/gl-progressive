@@ -23,6 +23,8 @@ find_package(glm REQUIRED)
 set(CORE_SOURCES
     src/core/geometry.cpp
     src/core/geometry.h
+    src/core/orthographic_camera.cpp
+    src/core/orthographic_camera.h
     src/core/shaders.cpp
     src/core/shaders.h
     src/core/timer.h
