@@ -23,10 +23,15 @@ find_package(glm REQUIRED)
 set(CORE_SOURCES
     src/core/geometry.cpp
     src/core/geometry.h
+    src/core/image.h
     src/core/orthographic_camera.cpp
     src/core/orthographic_camera.h
+    src/core/perspective_camera.cpp
+    src/core/perspective_camera.h
     src/core/shaders.cpp
     src/core/shaders.h
+    src/core/texture2d.cpp
+    src/core/texture2d.h
     src/core/timer.h
     src/core/window.cpp
     src/core/window.h
@@ -34,6 +39,9 @@ set(CORE_SOURCES
     src/geometries/box_geometry.h
     src/geometries/plane_geometry.cpp
     src/geometries/plane_geometry.h
+    src/loaders/image_loader.cpp
+    src/loaders/image_loader.h
+    src/loaders/loader.h
 )
 
 add_executable(tiling ${LIBS_SOURCES} ${CORE_SOURCES} src/tiling.cpp)
@@ -44,3 +52,10 @@ target_include_directories(tiling PRIVATE
 )
 
 target_link_libraries(tiling PRIVATE glfw glad::glad glm::glm OpenGL::GL)
+
+add_custom_command(
+    TARGET tiling POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_directory
+    ${CMAKE_SOURCE_DIR}/assets
+    $<TARGET_FILE_DIR:tiling>/assets
+)
