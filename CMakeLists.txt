@@ -44,6 +44,8 @@ set(CORE_SOURCES
     src/loaders/image_loader.cpp
     src/loaders/image_loader.h
     src/loaders/loader.h
+    src/resources/zoom_pan_camera.cpp
+    src/resources/zoom_pan_camera.h
 )
 
 add_executable(tiling ${LIBS_SOURCES} ${CORE_SOURCES} src/tiling.cpp)

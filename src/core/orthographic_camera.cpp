@@ -12,6 +12,6 @@ OrthographicCamera::OrthographicCamera(
     float top,
     float near,
     float far
-) {
+) : left_(left), right_(right), bottom_(bottom), top_(top) {
     projection_ = glm::ortho(left, right, bottom, top, near, far);
 }
