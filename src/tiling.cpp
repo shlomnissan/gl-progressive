@@ -6,8 +6,6 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
-#include <imgui.h>
-
 #include "core/orthographic_camera.h"
 #include "core/shaders.h"
 #include "core/texture2d.h"
@@ -40,17 +38,13 @@ auto main() -> int {
 
     glEnable(GL_DEPTH_TEST);
 
-    image_loader->LoadAsync("assets/spiralcrop_lod2.jpg", [&](const auto& image) {
+    image_loader->LoadAsync("assets/lod_2/spiralcrop2_01.jpg", [&](const auto& image) {
         texture.SetImage(image.value());
     });
 
     window.Start([&]([[maybe_unused]] const double _){
         glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-        ImGui::Begin("Hello, ImGui!");
-        ImGui::Text("Hello, world!");
-        ImGui::End();
 
         auto model = glm::mat4{1.0f};
         model = glm::translate(model, glm::vec3 {
