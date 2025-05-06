@@ -22,7 +22,7 @@ auto main() -> int {
     auto window = Window {win_width, win_height, "Tiling"};
     auto camera = OrthographicCamera {0.0f, win_width, win_height, 0.0f, -1.0f, 1.0f};
     auto controls = ZoomPanCamera {&camera};
-    auto image_loader = ImageLoader {};
+    auto image_loader = ImageLoader::Create();
     auto texture = Texture2D {};
     auto geometry = PlaneGeometry {{
         .width = 512.0f,
@@ -38,12 +38,8 @@ auto main() -> int {
 
     glEnable(GL_DEPTH_TEST);
 
-    image_loader.Load("assets/spiralcrop_lod2.jpg", [&](const auto& image) {
-        if (!image) {
-            std::cerr << image.error() << '\n';
-            return;
-        }
-        texture.SetTexture(image.value());
+    image_loader->LoadAsync("assets/spiralcrop_lod2.jpg", [&](const auto& image) {
+        texture.SetImage(image.value());
     });
 
     window.Start([&](const double _){
@@ -60,8 +56,10 @@ auto main() -> int {
         shader.SetUniform("u_Projection", camera.Projection());
         shader.SetUniform("u_ModelView", camera.View() * model);
 
-        texture.Bind();
-        geometry.Draw(shader);
+        if (texture.IsLoaded()) {
+            texture.Bind();
+            geometry.Draw(shader);
+        }
     });
 
     return 0;
