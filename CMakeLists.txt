@@ -19,6 +19,7 @@ find_package(OpenGL REQUIRED)
 find_package(glad REQUIRED)
 find_package(glfw3 REQUIRED)
 find_package(glm REQUIRED)
+find_package(imgui CONFIG REQUIRED)
 
 set(CORE_SOURCES
     src/core/events.h
@@ -48,14 +49,30 @@ set(CORE_SOURCES
     src/resources/zoom_pan_camera.h
 )
 
-add_executable(tiling ${LIBS_SOURCES} ${CORE_SOURCES} src/tiling.cpp)
+set(EXTERNAL_SOURCES
+    "${CMAKE_SOURCE_DIR}/external/imgui/imgui_impl_glfw.cpp"
+    "${CMAKE_SOURCE_DIR}/external/imgui/imgui_impl_opengl3.cpp"
+)
+
+add_executable(tiling
+    ${LIBS_SOURCES}
+    ${CORE_SOURCES}
+    ${EXTERNAL_SOURCES}
+    src/tiling.cpp
+)
 
 target_include_directories(tiling PRIVATE
     ${CMAKE_SOURCE_DIR}/src
-    ${CMAKE_SOURCE_DIR}/libs
+    ${CMAKE_SOURCE_DIR}/external
 )
 
-target_link_libraries(tiling PRIVATE glfw glad::glad glm::glm OpenGL::GL)
+target_link_libraries(tiling PRIVATE
+    glfw
+    glad::glad
+    glm::glm
+    OpenGL::GL
+    imgui::imgui
+)
 
 add_custom_command(
     TARGET tiling POST_BUILD
