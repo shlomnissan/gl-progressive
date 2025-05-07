@@ -38,7 +38,7 @@ auto Chunk::Load() -> void {
 auto Chunk::ModelMatrix() const -> glm::mat4 {
     return glm::translate(glm::mat4(1.0f), glm::vec3 {
         params_.position.x + params_.size.x / 2.0f, // offset right
-        params_.position.y - params_.size.y / 2.0f, // offset up
+        params_.position.y + params_.size.y / 2.0f, // offset up
         0.0f
     });
 }
