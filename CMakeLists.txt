@@ -58,6 +58,8 @@ add_executable(tiling
     ${LIBS_SOURCES}
     ${CORE_SOURCES}
     ${EXTERNAL_SOURCES}
+    src/chunk.cpp
+    src/chunk.h
     src/tiling.cpp
 )
 
