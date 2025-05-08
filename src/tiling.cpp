@@ -12,8 +12,12 @@
 
 #include "shaders/headers/scene_frag.h"
 #include "shaders/headers/scene_vert.h"
+#include "shaders/headers/line_vert.h"
+#include "shaders/headers/line_frag.h"
 
 #include "chunk.h"
+
+#include <imgui.h>
 
 struct Bounds {
     glm::vec2 min {0.0f};
@@ -39,12 +43,15 @@ auto main() -> int {
         .height_segments = 1
     }};
 
-    auto shader = Shaders {{
+    auto shader_tile = Shaders {{
         {ShaderType::kVertexShader, _SHADER_scene_vert},
         {ShaderType::kFragmentShader, _SHADER_scene_frag}
     }};
 
-    glEnable(GL_DEPTH_TEST);
+    auto shader_line = Shaders {{
+        {ShaderType::kVertexShader, _SHADER_line_vert},
+        {ShaderType::kFragmentShader, _SHADER_line_frag}
+    }};
 
     auto chunks = std::vector<Chunk> {};
     for (auto i = 0; i < 16; ++i) {
@@ -83,21 +90,48 @@ auto main() -> int {
         };
     };
 
+    const auto draw_debugger = [&]() {
+        const auto visible_bounds = compute_visible_bounds();
+        const auto lod = calculate_lod();
+
+        ImGui::Begin("Debugger");
+        ImGui::Text("Level of detail: %d", lod);
+        ImGui::Separator();
+        ImGui::Text("Visible bounds:");
+        ImGui::Text("min [%.2f, %.2f]", visible_bounds.min.x, visible_bounds.min.y);
+        ImGui::Text("max [%.2f, %.2f]", visible_bounds.max.x, visible_bounds.max.y);
+        ImGui::Separator();
+        ImGui::End();
+    };
+
     window.Start([&]([[maybe_unused]] const double _){
         glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        shader.SetUniform("u_Projection", camera.Projection());
+        draw_debugger();
 
-        std::print("Current LOD: {}\n", calculate_lod());
-        compute_visible_bounds();
+        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+        glDisable(GL_BLEND);
 
+        shader_tile.Use();
+        shader_tile.SetUniform("u_Projection", camera.Projection());
         for (auto& chunk : chunks) {
             if (chunk.State() == ChunkState::Loaded) {
                 chunk.Texture().Bind();
-                shader.SetUniform("u_ModelView", camera.View() * chunk.ModelMatrix());
-                geometry.Draw(shader);
+                shader_tile.SetUniform("u_ModelView", camera.View() * chunk.ModelMatrix());
+                geometry.Draw(shader_tile);
             }
+        }
+
+        glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+        glEnable(GL_BLEND);
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+        shader_line.Use();
+        shader_line.SetUniform("u_Projection", camera.Projection());
+        for (const auto& chunk : chunks) {
+                shader_line.SetUniform("u_ModelView", camera.View() * chunk.ModelMatrix());
+                geometry.Draw(shader_line);
         }
     });
 
