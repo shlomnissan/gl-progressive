@@ -53,6 +53,8 @@ auto main() -> int {
         {ShaderType::kFragmentShader, _SHADER_line_frag}
     }};
 
+    // generate tiles for LOD0 and load their textures immediately
+
     auto chunks = std::vector<Chunk> {};
     for (auto i = 0; i < 16; ++i) {
         auto x = i % 4;
@@ -64,7 +66,6 @@ auto main() -> int {
             .size = {512.0f, 512.0f}
         }, std::format("assets/lod_0/spiralcrop0_{:02}.jpg", i + 1));
     }
-
     for (auto& chunk : chunks) chunk.Load();
 
     const auto calculate_lod = [&]() {
@@ -90,17 +91,33 @@ auto main() -> int {
         };
     };
 
+    const auto intersects = [&](const auto& bounds, const auto& chunk) {
+        const Bounds chunk_bounds = {
+            .min = chunk.Position(),
+            .max = chunk.Position() + chunk.Size()
+        };
+
+        const auto chunk_min = glm::min(chunk_bounds.min, chunk_bounds.max);
+        const auto chunk_max = glm::max(chunk_bounds.min, chunk_bounds.max);
+        const auto visible_min = glm::min(bounds.min, bounds.max);
+        const auto visible_max = glm::max(bounds.min, bounds.max);
+
+        return (chunk_min.x <= visible_max.x && chunk_max.x >= visible_min.x) &&
+               (chunk_min.y <= visible_max.y && chunk_max.y >= visible_min.y);
+    };
+
     const auto draw_debugger = [&]() {
         const auto visible_bounds = compute_visible_bounds();
         const auto lod = calculate_lod();
-
+        ImGui::SetNextWindowFocus();
         ImGui::Begin("Debugger");
         ImGui::Text("Level of detail: %d", lod);
         ImGui::Separator();
-        ImGui::Text("Visible bounds:");
-        ImGui::Text("min [%.2f, %.2f]", visible_bounds.min.x, visible_bounds.min.y);
-        ImGui::Text("max [%.2f, %.2f]", visible_bounds.max.x, visible_bounds.max.y);
-        ImGui::Separator();
+        for (auto i = 0; i < chunks.size(); ++i) {
+            intersects(visible_bounds, chunks[i]) ?
+                ImGui::Text("[X] Chunk %d", i) :
+                ImGui::Text("[ ] Chunk %d", i);
+        }
         ImGui::End();
     };
 
@@ -109,6 +126,8 @@ auto main() -> int {
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         draw_debugger();
+
+        // draw tiles
 
         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
         glDisable(GL_BLEND);
@@ -123,6 +142,8 @@ auto main() -> int {
             }
         }
 
+        // draw wireframes
+
         glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
         glEnable(GL_BLEND);
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -130,8 +151,8 @@ auto main() -> int {
         shader_line.Use();
         shader_line.SetUniform("u_Projection", camera.Projection());
         for (const auto& chunk : chunks) {
-                shader_line.SetUniform("u_ModelView", camera.View() * chunk.ModelMatrix());
-                geometry.Draw(shader_line);
+            shader_line.SetUniform("u_ModelView", camera.View() * chunk.ModelMatrix());
+            geometry.Draw(shader_line);
         }
     });
 

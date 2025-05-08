@@ -36,6 +36,14 @@ public:
         return state_;
     }
 
+    [[nodiscard]] auto Position() const -> glm::vec2 {
+        return params_.position;
+    }
+
+    [[nodiscard]] auto Size() const -> glm::vec2 {
+        return params_.size;
+    }
+
     [[nodiscard]] auto Texture() -> Texture2D& {
         return texture_;
     }
