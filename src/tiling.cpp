@@ -15,6 +15,11 @@
 
 #include "chunk.h"
 
+struct Bounds {
+    glm::vec2 min {0.0f};
+    glm::vec2 max {0.0f};
+};
+
 auto main() -> int {
     constexpr auto win_width = 1024;
     constexpr auto win_height = 1024;
@@ -63,6 +68,21 @@ auto main() -> int {
         return std::clamp(static_cast<int>(std::floor(lod_f)), 0, lods - 1);
     };
 
+    const auto compute_visible_bounds = [&]() {
+        const auto top_left_ndc = glm::vec4(-1.0f,  1.0f, 0.0f, 1.0f);
+        const auto bottom_right_ndc = glm::vec4( 1.0f, -1.0f, 0.0f, 1.0f);
+
+        const auto inv_vp = glm::inverse(camera.Projection() * camera.View());
+
+        const auto top_left_world = inv_vp * top_left_ndc;
+        const auto bottom_right_world = inv_vp * bottom_right_ndc;
+
+        return Bounds {
+            .min = {top_left_world.x, top_left_world.y},
+            .max = {bottom_right_world.x, bottom_right_world.y}
+        };
+    };
+
     window.Start([&]([[maybe_unused]] const double _){
         glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -70,6 +90,7 @@ auto main() -> int {
         shader.SetUniform("u_Projection", camera.Projection());
 
         std::print("Current LOD: {}\n", calculate_lod());
+        compute_visible_bounds();
 
         for (auto& chunk : chunks) {
             if (chunk.State() == ChunkState::Loaded) {
