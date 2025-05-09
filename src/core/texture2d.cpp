@@ -55,6 +55,8 @@ auto Texture2D::Bind() -> void {
 }
 
 Texture2D::~Texture2D() {
-    glDeleteTextures(1, &texture_id_);
-    texture_id_ = 0;
+    if (is_loaded_) {
+        glDeleteTextures(1, &texture_id_);
+        texture_id_ = 0;
+    }
 }

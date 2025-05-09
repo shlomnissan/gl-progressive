@@ -62,7 +62,7 @@ add_executable(tiling
     src/chunk.h
     src/chunk_manager.cpp
     src/chunk_manager.h
-    src/tiling.cpp
+    src/main.cpp
 )
 
 target_include_directories(tiling PRIVATE
