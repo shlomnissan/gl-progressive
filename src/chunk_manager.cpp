@@ -30,11 +30,11 @@ auto ChunkManager::Update(const OrthographicCamera& camera) -> void {
 };
 
 auto ChunkManager::GetVisibleChunks() -> std::vector<Chunk>& {
-    return chunks_[0];
+    return chunks_[curr_lod_];
 }
 
 auto ChunkManager::GenerateChunks() -> void {
-    for (auto i = 0u; i < 1; ++i) {
+    for (auto i = 0u; i < lods_; ++i) {
         const auto lod_width = static_cast<float>(image_dims_.width) / (1 << i);
         const auto lod_height = static_cast<float>(image_dims_.height) / (1 << i);
         const auto grid_x = static_cast<int>(lod_width / kChunkSize);
@@ -44,7 +44,7 @@ auto ChunkManager::GenerateChunks() -> void {
         for (auto j = 1; j <= n_chunks; ++j) {
             auto x = (j - 1) % grid_x;
             auto y = (j - 1) / grid_y;
-            auto path = std::format("assets/lod_{}/spiralcrop0_{:02}.jpg", i, j);
+            auto path = std::format("assets/lod_{}/spiralcrop{}_{:02}.jpg", i, i, j);
             chunks_[i].emplace_back(Chunk::Params {
                 .lod = i,
                 .grid_index = {x, y},
@@ -54,8 +54,8 @@ auto ChunkManager::GenerateChunks() -> void {
         }
     }
 
-    for (auto& chunk : chunks_[0]) {
-        chunk.Load();
+    for (auto& chunks : chunks_) {
+        for (auto& chunk : chunks) chunk.Load();
     }
 }
 
@@ -93,12 +93,13 @@ auto ChunkManager::Debug() const -> void {
     ImGui::SetNextWindowFocus();
     ImGui::Begin("Chunk Manager");
     ImGui::Text("Image dimensions: %dx%d", image_dims_.width, image_dims_.height);
-    ImGui::Text("Level of detail: %d/%d", curr_lod_, lods_);
+    ImGui::Text("Level of detail: %d", curr_lod_);
     ImGui::Separator();
-    for (auto i = 0; i < chunks_[0].size(); ++i) {
-        IsChunkVisible(chunks_[0][i]) ?
-            ImGui::Text("[X] Chunk %d", i) :
-            ImGui::Text("[ ] Chunk %d", i);
+
+    for (auto i = 0; i < chunks_[curr_lod_].size(); ++i) {
+        IsChunkVisible(chunks_[curr_lod_][i]) ?
+            ImGui::Text("[X] CHUNK_%d_%d", curr_lod_, i) :
+            ImGui::Text("[ ] CHUNK_%d_%d", curr_lod_, i);
     }
     ImGui::End();
 }
