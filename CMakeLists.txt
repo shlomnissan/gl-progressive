@@ -60,6 +60,8 @@ add_executable(tiling
     ${EXTERNAL_SOURCES}
     src/chunk.cpp
     src/chunk.h
+    src/chunk_manager.cpp
+    src/chunk_manager.h
     src/tiling.cpp
 )
 
