@@ -7,6 +7,8 @@
 
 #include <imgui.h>
 
+#include <print>
+
 ChunkManager::ChunkManager(const Parameters& params) :
     image_dims_(params.image_dims),
     window_dims_(params.window_dims),
@@ -19,7 +21,7 @@ ChunkManager::ChunkManager(const Parameters& params) :
 auto ChunkManager::ComputeLod(const OrthographicCamera& camera) const -> int {
     const auto virtual_width = camera.Width() / glm::length(glm::vec3{camera.transform[0]});
     const auto virtual_units_per_screen_pixel =  virtual_width / window_dims_.width;
-    const auto lod_shift = static_cast<float>(lods_);
+    const auto lod_shift = static_cast<float>(lods_) - 1;
     const float lod_f = lod_shift + std::log2(1 / virtual_units_per_screen_pixel);
     return std::clamp(static_cast<int>(std::floor(lod_f)), 0, lods_ - 1);
 }
@@ -95,7 +97,6 @@ auto ChunkManager::Debug() const -> void {
     ImGui::Text("Image dimensions: %dx%d", image_dims_.width, image_dims_.height);
     ImGui::Text("Level of detail: %d", curr_lod_);
     ImGui::Separator();
-
     for (auto i = 0; i < chunks_[curr_lod_].size(); ++i) {
         IsChunkVisible(chunks_[curr_lod_][i]) ?
             ImGui::Text("[X] CHUNK_%d_%d", curr_lod_, i) :
