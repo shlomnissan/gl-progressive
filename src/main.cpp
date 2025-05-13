@@ -66,35 +66,29 @@ auto main() -> int {
         chunk_manager.Update(camera);
         chunk_manager.Debug();
 
-        auto& chunks = chunk_manager.GetVisibleChunks();
-
-        // draw tiles
-
         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
         glDisable(GL_BLEND);
 
         shader_tile.Use();
         shader_tile.SetUniform("u_Projection", camera.Projection());
 
+        auto chunks = chunk_manager.GetVisibleChunks();
         for (auto& chunk : chunks) {
-            if (chunk.State() == ChunkState::Loaded) {
-                chunk.Texture().Bind();
-                shader_tile.SetUniform("u_ModelView", camera.View() * chunk.ModelMatrix());
-                geometry.Draw(shader_tile);
-            }
+            chunk.Texture().Bind();
+            shader_tile.SetUniform("u_ModelView", camera.View() * chunk.ModelMatrix());
+            geometry.Draw(shader_tile);
         }
 
-        // draw wireframes
-
-        glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-        glEnable(GL_BLEND);
-        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
-        shader_line.Use();
-        shader_line.SetUniform("u_Projection", camera.Projection());
-        for (const auto& chunk : chunks) {
-            shader_line.SetUniform("u_ModelView", camera.View() * chunk.ModelMatrix());
-            geometry.Draw(shader_line);
+        if (chunk_manager.show_wireframes) {
+            glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+            glEnable(GL_BLEND);
+            glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+            shader_line.Use();
+            shader_line.SetUniform("u_Projection", camera.Projection());
+            for (const auto& chunk : chunks) {
+                shader_line.SetUniform("u_ModelView", camera.View() * chunk.ModelMatrix());
+                geometry.Draw(shader_line);
+            }
         }
     });
 

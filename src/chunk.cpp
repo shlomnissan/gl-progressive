@@ -15,6 +15,12 @@ Chunk::Chunk(const Params& params, const fs::path& path) : params_(params), sour
 }
 
 auto Chunk::Load() -> void {
+    if (state_ == ChunkState::Loading || state_ == ChunkState::Loaded) {
+        return;
+    }
+
+    state_ = ChunkState::Loading;
+
     image_loader_->LoadAsync(source_, [this](const auto& image) {
         if (image.has_value()) {
             texture_.SetImage(image.value());

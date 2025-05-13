@@ -7,8 +7,6 @@
 
 #include <imgui.h>
 
-#include <print>
-
 ChunkManager::ChunkManager(const Parameters& params) :
     image_dims_(params.image_dims),
     window_dims_(params.window_dims),
@@ -29,11 +27,16 @@ auto ChunkManager::ComputeLod(const OrthographicCamera& camera) const -> int {
 auto ChunkManager::Update(const OrthographicCamera& camera) -> void {
     curr_lod_ = ComputeLod(camera);
     visible_bounds_ = ComputeVisibleBounds(camera);
-};
 
-auto ChunkManager::GetVisibleChunks() -> std::vector<Chunk>& {
-    return chunks_[curr_lod_];
-}
+    for (auto lod = 0; lod < lods_; ++lod) {
+        for (auto& chunk : chunks_[lod]) {
+            chunk.visible = IsChunkVisible(chunk);
+            if (curr_lod_ == lod && chunk.visible && chunk.State() == ChunkState::Unloaded) {
+                chunk.Load();
+            }
+        }
+    }
+};
 
 auto ChunkManager::GenerateChunks() -> void {
     for (auto i = 0u; i < lods_; ++i) {
@@ -56,10 +59,6 @@ auto ChunkManager::GenerateChunks() -> void {
                 .lod = i
             }, path);
         }
-    }
-
-    for (auto& chunks : chunks_) {
-        for (auto& chunk : chunks) chunk.Load();
     }
 }
 
@@ -93,16 +92,21 @@ auto ChunkManager::IsChunkVisible(const Chunk& chunk) const -> bool {
            (chunk_min.y <= bounds_max.y && chunk_max.y >= bounds_min.y);
 }
 
-auto ChunkManager::Debug() const -> void {
+auto ChunkManager::Debug() -> void {
     ImGui::SetNextWindowFocus();
     ImGui::Begin("Chunk Manager");
     ImGui::Text("Image dimensions: %dx%d", image_dims_.width, image_dims_.height);
-    ImGui::Text("Level of detail: %d", curr_lod_);
+    ImGui::Text("Current LOD: %d", curr_lod_);
     ImGui::Separator();
-    for (auto i = 0; i < chunks_[curr_lod_].size(); ++i) {
-        IsChunkVisible(chunks_[curr_lod_][i]) ?
-            ImGui::Text("[X] CHUNK_%d_%d", curr_lod_, i) :
-            ImGui::Text("[ ] CHUNK_%d_%d", curr_lod_, i);
+    ImGui::Checkbox("Show Wireframes", &show_wireframes);
+    ImGui::Separator();
+    ImGui::Text(" V  L  ");
+    for (auto lod = lods_ - 1; lod >= 0; --lod) {
+        for (auto i = 0; i < chunks_[lod].size(); ++i) {
+            const auto visible = chunks_[lod][i].visible ? "X" : " ";
+            const auto loaded = chunks_[lod][i].State() == ChunkState::Loaded ? "X" : " ";
+            ImGui::Text("[%s][%s] LOD_%d_CHUNK_%d", visible, loaded, lod, i);
+        }
     }
     ImGui::End();
 }

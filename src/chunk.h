@@ -31,17 +31,19 @@ public:
         unsigned lod;
     };
 
+    bool visible {false};
+
     Chunk(const Params& params, const fs::path& path);
 
     [[nodiscard]] auto State() const -> ChunkState {
         return state_;
     }
 
-    [[nodiscard]] auto Position() const -> glm::vec2 {
+    [[nodiscard]] auto Position() const {
         return params_.position;
     }
 
-    [[nodiscard]] auto Size() const -> glm::vec2 {
+    [[nodiscard]] auto Size() const {
         return params_.size;
     }
 
