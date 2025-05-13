@@ -39,6 +39,7 @@ auto ChunkManager::GenerateChunks() -> void {
     for (auto i = 0u; i < lods_; ++i) {
         const auto lod_width = static_cast<float>(image_dims_.width) / (1 << i);
         const auto lod_height = static_cast<float>(image_dims_.height) / (1 << i);
+        const auto scale = static_cast<float>(pow(2, i));
         const auto grid_x = static_cast<int>(lod_width / kChunkSize);
         const auto grid_y = static_cast<int>(lod_height / kChunkSize);
         const auto n_chunks = grid_x * grid_y;
@@ -48,10 +49,11 @@ auto ChunkManager::GenerateChunks() -> void {
             auto y = (j - 1) / grid_y;
             auto path = std::format("assets/lod_{}/spiralcrop{}_{:02}.jpg", i, i, j);
             chunks_[i].emplace_back(Chunk::Params {
-                .lod = i,
                 .grid_index = {x, y},
-                .position = {x * kChunkSize, y * kChunkSize},
-                .size = {kChunkSize, kChunkSize}
+                .position = {x * kChunkSize * scale, y * kChunkSize * scale},
+                .size = {kChunkSize * scale, kChunkSize * scale},
+                .scale = scale,
+                .lod = i
             }, path);
         }
     }

@@ -24,10 +24,11 @@ enum class ChunkState {
 class Chunk {
 public:
     struct Params {
-        unsigned lod;
         glm::ivec2 grid_index;
         glm::vec2 position {0.0f, 0.0f};
         glm::vec2 size;
+        float scale {1.0f};
+        unsigned lod;
     };
 
     Chunk(const Params& params, const fs::path& path);

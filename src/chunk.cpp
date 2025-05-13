@@ -36,11 +36,9 @@ auto Chunk::Load() -> void {
 }
 
 auto Chunk::ModelMatrix() const -> glm::mat4 {
-    const auto scale = pow(2, params_.lod);
-    return glm::scale(glm::mat4(1.0f), glm::vec3 {scale, scale, 1.0f})
-         * glm::translate(glm::mat4(1.0f), glm::vec3 {
+    return glm::translate(glm::mat4(1.0f), glm::vec3 {
         params_.position.x + params_.size.x / 2.0f, // offset right
         params_.position.y + params_.size.y / 2.0f, // offset up
         0.0f
-    });
+    }) * glm::scale(glm::mat4(1.0f), glm::vec3 {params_.scale, params_.scale, 1.0f});
 }
