@@ -47,6 +47,10 @@ public:
         return params_.size;
     }
 
+    [[nodiscard]] auto Lod() const {
+        return params_.lod;
+    }
+
     [[nodiscard]] auto Texture() -> Texture2D& {
         return texture_;
     }

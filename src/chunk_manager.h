@@ -8,7 +8,6 @@
 #include "core/orthographic_camera.h"
 
 #include <vector>
-#include <ranges>
 
 #include <glm/vec2.hpp>
 
@@ -16,6 +15,8 @@ class ChunkManager {
 public:
     constexpr static auto kChunkSize = 512.0f;
 
+    int curr_lod {0};
+    int prev_lod {0};
     bool show_wireframes {true};
 
     struct Dimensions {
@@ -40,11 +41,7 @@ public:
 
     auto Update(const OrthographicCamera& camera) -> void;
 
-    auto GetVisibleChunks() {
-        return chunks_[curr_lod_] | std::views::filter([](const auto& chunk) {
-            return chunk.visible && chunk.State() == ChunkState::Loaded;
-        });
-    }
+    auto GetVisibleChunks() -> std::vector<Chunk*>;
 
 private:
     std::vector<std::vector<Chunk>> chunks_;
@@ -54,7 +51,7 @@ private:
     Dimensions window_dims_ {};
 
     int lods_ {0};
-    int curr_lod_ {0};
+    int max_lod_ {0};
 
     auto GenerateChunks() -> void;
 

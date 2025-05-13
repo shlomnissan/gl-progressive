@@ -72,12 +72,19 @@ auto main() -> int {
         shader_tile.Use();
         shader_tile.SetUniform("u_Projection", camera.Projection());
 
+        // render textured tiles
+
         auto chunks = chunk_manager.GetVisibleChunks();
         for (auto& chunk : chunks) {
-            chunk.Texture().Bind();
-            shader_tile.SetUniform("u_ModelView", camera.View() * chunk.ModelMatrix());
+            if (chunk->State() != ChunkState::Loaded) {
+                continue;
+            }
+            chunk->Texture().Bind();
+            shader_tile.SetUniform("u_ModelView", camera.View() * chunk->ModelMatrix());
             geometry.Draw(shader_tile);
         }
+
+        // render wireframes
 
         if (chunk_manager.show_wireframes) {
             glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
@@ -85,8 +92,13 @@ auto main() -> int {
             glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
             shader_line.Use();
             shader_line.SetUniform("u_Projection", camera.Projection());
+
             for (const auto& chunk : chunks) {
-                shader_line.SetUniform("u_ModelView", camera.View() * chunk.ModelMatrix());
+                if (chunk->Lod() != chunk_manager.curr_lod ||
+                    chunk->State() != ChunkState::Loaded) {
+                    continue;
+                }
+                shader_line.SetUniform("u_ModelView", camera.View() * chunk->ModelMatrix());
                 geometry.Draw(shader_line);
             }
         }
