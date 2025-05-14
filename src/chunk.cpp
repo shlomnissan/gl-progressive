@@ -25,12 +25,16 @@ auto Chunk::Load() -> void {
         if (image.has_value()) {
             texture_.SetImage(image.value());
 
-            // Add random delay for chunks at Lod 0 to simulate loading time
+            static thread_local std::mt19937 rng(std::random_device{}());
+
             if (params_.lod == 0) {
-                static thread_local std::mt19937 rng(std::random_device{}());
+                std::uniform_int_distribution dist(500, 2000);
+                std::this_thread::sleep_for(std::chrono::milliseconds(dist(rng)));
+            }
+
+            if (params_.lod == 1) {
                 std::uniform_int_distribution dist(100, 1000);
-                auto delay_ms = dist(rng);
-                std::this_thread::sleep_for(std::chrono::milliseconds(delay_ms));
+                std::this_thread::sleep_for(std::chrono::milliseconds(dist(rng)));
             }
 
             state_ = ChunkState::Loaded;

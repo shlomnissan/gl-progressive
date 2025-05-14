@@ -14,9 +14,7 @@ class ZoomPanCamera {
 public:
     explicit ZoomPanCamera(OrthographicCamera* camera);
 
-    auto Pan(const glm::vec2& position) -> void;
-
-    auto Zoom(float factor) -> void;
+    auto Update() -> void;
 
     ~ZoomPanCamera();
 
@@ -29,9 +27,14 @@ private:
     glm::vec2 prev_position_ {0.0f};
 
     float zoom_factor_ {1.0f};
+    float curr_scroll_ {200.0f};
 
     bool is_first_pan_ {true};
     bool is_panning_ {false};
 
-    void UpdateCamera();
+    bool pan_ {false};
+    bool zoom_ {true};
+
+    auto Pan() -> void;
+    auto Zoom() -> void;
 };
